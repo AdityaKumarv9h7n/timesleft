@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Countdown</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --text-color: #2d3748;
+      --label-color: #4a5568;
+      --digit-color: #4a5568;
+      --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode {
+      --text-color: #f5f5f5;
+      --label-color: #e6e6e6;
+      --digit-color: #f5f5f5;
+      --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      background: #000000;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: var(--text-color);
+      text-align: center;
+      padding: 20px;
+      transition: color 0.5s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Container for main content */
+    .content-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      width: 100%;
+      padding-bottom: 70px; /* Space for the button at bottom */
+    }
+
+    /* Footer container for the toggle button */
+    .footer-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 15px;
+      text-align: center;
+      z-index: 10;
+    }
+
+    body:not(.dark-mode)::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(76deg,
+        #f8f9fa, /* Light Gray */
+        #e2e8f0, /* Light Blue-Gray */
+        #cbd5e0, /* Blue-Gray */
+        #e6fffa, /* Light Teal */
+        #ebf4ff, /* Light Blue */
+        #edf2f7, /* Light Gray-Blue */
+        #faf5ff, /* Light Purple */
+        #f0fff4, /* Light Green */
+        #fff5f5, /* Light Red */
+        #f7fafc  /* Very Light Gray */
+      );
+      background-size: 400% 400%;
+      animation: gradientBG 20s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      25% { background-position: 50% 100%; }
+      50% { background-position: 8% 50%; }
+      75% { background-position: 50% 0%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+      font-weight: 600;
+      background: linear-gradient(90deg, #1a365d, #2c5282);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    body.dark-mode h1 {
+      background: linear-gradient(90deg, #f5f5f5, #e6e6e6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .toggle-btn {
+      padding: 10px 20px;
+      border: none;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      color: var(--text-color);
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: var(--box-shadow);
+      transition: all 0.3s ease;
+    }
+    
+    body.dark-mode .toggle-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #f5f5f5;
+    }
+
+    .toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .countdown {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .time-box {
+      background: transparent;
+      padding: 8px 5px;
+      transition: transform 0.3s ease;
+    }
+
+    body.dark-mode .time-box {
+      background: transparent;
+    }
+
+    .time-box:hover {
+      transform: translateY(-5px);
+    }
+
+    .value {
+      font-size: clamp(1.3rem, 2.5vw, 1.6rem);
+      font-weight: 600;
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: nowrap;
+    }
+
+    .digit {
+      position: relative;
+      display: inline-block;
+      width: 0.8em;
+      font-weight: 600;
+      color: var(--digit-color);
+      transition: color 0.3s ease;
+      line-height: 1.1em;
+      font-size: 0.95em;
+    }
+
+    .digit.animate {
+      animation: slideDown 0.5s ease-in-out;
+    }
+
+    @keyframes slideDown {
+      0% { transform: translateY(-10px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .label {
+      margin-top: 5px;
+      font-size: clamp(0.7rem, 1.8vw, 0.85rem);
+      color: var(--label-color);
+      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 768px) {
+      .countdown {
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 5px;
+      }
+      
+      .time-box {
+        padding: 6px 3px;
+      }
+      
+      .digit {
+        width: 1em;
+        height: 1.4em;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .countdown {
+        grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+        gap: 3px;
+      }
+      
+      h1 {
+        font-size: clamp(1.2rem, 5vw, 1.8rem);
+        margin-bottom: 25px;
+        margin-top: -20px; /* Move everything up a bit on mobile */
+      }
+      
+      .toggle-btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+      }
+      
+      .content-container {
+        padding-top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="content-container">
+    <h1>Countdown to June 28, 2035</h1>
+    <div class="countdown" id="countdown"></div>
+  </div>
+  
+  <div class="footer-container">
+    <button class="toggle-btn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  </div>
+
+  <script>
+    const targetDate = new Date('June 28, 2035 00:00:00');
+    const countdownContainer = document.getElementById('countdown');
+    let previousSecondStr = '';
+
+    function updateCountdown() {
+      const now = new Date();
+      let totalSeconds = Math.floor((targetDate - now) / 1000);
+
+      if (totalSeconds < 0) totalSeconds = 0;
+
+      const seconds = totalSeconds % 60;
+      const minutes = Math.floor(totalSeconds / 60) % 60;
+      const hours = Math.floor(totalSeconds / 3600) % 24;
+      const days = Math.floor(totalSeconds / (3600 * 24)) % 7;
+      const weeks = Math.floor(totalSeconds / (3600 * 24 * 7)) % 4;
+      const months = Math.floor(totalSeconds / (3600 * 24 * 30)) % 12;
+      const years = Math.floor(totalSeconds / (3600 * 24 * 365));
+
+      const currentSecondStr = seconds.toString().padStart(2, '0');
+      const previousDigits = previousSecondStr.padStart(2, '0').split('');
+
+      const timeData = [
+        { label: 'Years', value: years },
+        { label: 'Months', value: months },
+        { label: 'Weeks', value: weeks },
+        { label: 'Days', value: days },
+        { label: 'Hours', value: hours },
+        { label: 'Minutes', value: minutes },
+        {
+          label: 'Seconds',
+          value: currentSecondStr,
+          animated: true,
+          digits: currentSecondStr.split('').map((d, i) => ({
+            char: d,
+            animate: d !== previousDigits[i]
+          }))
+        },
+      ];
+
+      countdownContainer.innerHTML = timeData.map(time => {
+        if (!time.animated) {
+          return `
+            <div class="time-box">
+              <div class="value">${String(time.value).padStart(2, '0').split('').map(d => `<span class="digit">${d}</span>`).join('')}</div>
+              <div class="label">${time.label}</div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="time-box">
+              <div class="value">
+                ${time.digits.map(d => `<span class="digit${d.animate ? ' animate' : ''}">${d.char}</span>`).join('')}
+              </div>
+              <div class="label">${time.label}</div>
+            </div>
+          `;
+        }
+      }).join('');
+
+      previousSecondStr = currentSecondStr;
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  </script>
+</body>
+</html>
