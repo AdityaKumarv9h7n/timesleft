@@ -251,69 +251,94 @@
     let previousSecondStr = '';
 
     function updateCountdown() {
-      const now = new Date();
-      let totalSeconds = Math.floor((targetDate - now) / 1000);
+  const now = new Date();
+  const target = new Date('2035-06-28T00:00:00');
+  
+  if (now >= target) {
+    // Event has passed
+    countdownContainer.innerHTML = '<div class="time-box"><div class="value">00</div><div class="label">Event Passed</div></div>';
+    return;
+  }
 
-      if (totalSeconds < 0) totalSeconds = 0;
+  // Calculate exact differences
+  let years = target.getFullYear() - now.getFullYear();
+  let months = target.getMonth() - now.getMonth();
+  let days = target.getDate() - now.getDate();
+  let hours = target.getHours() - now.getHours();
+  let minutes = target.getMinutes() - now.getMinutes();
+  let seconds = target.getSeconds() - now.getSeconds();
 
-      const seconds = totalSeconds % 60;
-      const minutes = Math.floor(totalSeconds / 60) % 60;
-      const hours = Math.floor(totalSeconds / 3600) % 24;
-      const days = Math.floor(totalSeconds / (3600 * 24)) % 7;
-      const weeks = Math.floor(totalSeconds / (3600 * 24 * 7)) % 4;
-      const months = Math.floor(totalSeconds / (3600 * 24 * 30)) % 12;
-      const years = Math.floor(totalSeconds / (3600 * 24 * 365));
+  // Handle negative values by borrowing from higher units
+  if (seconds < 0) {
+    seconds += 60;
+    minutes--;
+  }
+  if (minutes < 0) {
+    minutes += 60;
+    hours--;
+  }
+  if (hours < 0) {
+    hours += 24;
+    days--;
+  }
+  if (days < 0) {
+    // Borrow from previous month
+    const prevMonth = new Date(target.getFullYear(), target.getMonth() - 1, 0);
+    days += prevMonth.getDate();
+    months--;
+  }
+  if (months < 0) {
+    months += 12;
+    years--;
+  }
 
-      const currentSecondStr = seconds.toString().padStart(2, '0');
-      const previousDigits = previousSecondStr.padStart(2, '0').split('');
+  // Calculate weeks from remaining days
+  const weeks = Math.floor(days / 7);
+  days = days % 7;
 
-      const timeData = [
-        { label: 'Years', value: years },
-        { label: 'Months', value: months },
-        { label: 'Weeks', value: weeks },
-        { label: 'Days', value: days },
-        { label: 'Hours', value: hours },
-        { label: 'Minutes', value: minutes },
-        {
-          label: 'Seconds',
-          value: currentSecondStr,
-          animated: true,
-          digits: currentSecondStr.split('').map((d, i) => ({
-            char: d,
-            animate: d !== previousDigits[i]
-          }))
-        },
-      ];
+  const currentSecondStr = seconds.toString().padStart(2, '0');
+  const previousDigits = previousSecondStr.padStart(2, '0').split('');
 
-      countdownContainer.innerHTML = timeData.map(time => {
-        if (!time.animated) {
-          return `
-            <div class="time-box">
-              <div class="value">${String(time.value).padStart(2, '0').split('').map(d => `<span class="digit">${d}</span>`).join('')}</div>
-              <div class="label">${time.label}</div>
-            </div>
-          `;
-        } else {
-          return `
-            <div class="time-box">
-              <div class="value">
-                ${time.digits.map(d => `<span class="digit${d.animate ? ' animate' : ''}">${d.char}</span>`).join('')}
-              </div>
-              <div class="label">${time.label}</div>
-            </div>
-          `;
-        }
-      }).join('');
+  const timeData = [
+    { label: 'Years', value: years },
+    { label: 'Months', value: months },
+    { label: 'Weeks', value: weeks },
+    { label: 'Days', value: days },
+    { label: 'Hours', value: hours },
+    { label: 'Minutes', value: minutes },
+    {
+      label: 'Seconds',
+      value: currentSecondStr,
+      animated: true,
+      digits: currentSecondStr.split('').map((d, i) => ({
+        char: d,
+        animate: d !== previousDigits[i]
+      }))
+    },
+  ];
 
-      previousSecondStr = currentSecondStr;
+  countdownContainer.innerHTML = timeData.map(time => {
+    if (!time.animated) {
+      return `
+        <div class="time-box">
+          <div class="value">${String(time.value).padStart(2, '0').split('').map(d => `<span class="digit">${d}</span>`).join('')}</div>
+          <div class="label">${time.label}</div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="time-box">
+          <div class="value">
+            ${time.digits.map(d => `<span class="digit${d.animate ? ' animate' : ''}">${d.char}</span>`).join('')}
+          </div>
+          <div class="label">${time.label}</div>
+        </div>
+      `;
     }
+  }).join('');
 
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-    }
-
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
+  previousSecondStr = currentSecondStr;
+}
   </script>
 </body>
 </html>
