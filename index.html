@@ -318,6 +318,37 @@ const days = Math.floor(remainingDaysAfterMonths % 7);
 
     updateCountdown();
     setInterval(updateCountdown, 1000);
+
+/* for full screen mode */
+
+  const container = document.getElementById("fullscreen-container");
+
+  let lastTap = 0;
+
+  container.addEventListener("touchend", function (e) {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    if (tapLength < 300 && tapLength > 0) {
+      toggleFullscreen();
+    }
+    lastTap = currentTime;
+  });
+
+  container.addEventListener("dblclick", toggleFullscreen); // for desktop
+
+  function toggleFullscreen() {
+    const elem = document.documentElement;
+
+    if (!document.fullscreenElement) {
+      elem.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+
   </script>
 </body>
 </html>
